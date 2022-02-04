@@ -1,0 +1,30 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: Hello, World!
+  targetbin: ~/bin
+  buildname: wordle
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+  install:
+    desc: copy build file to local bin
+    dir: .
+    preconditions:
+      - test -d {{.targetbin}}/
+    cmds:
+      - task: build
+      - cmd: rm {{.targetbin}}/{{.buildname}}
+        ignore_error: true
+      - cp ./{{.buildname}} {{.targetbin}}
+      - rm -f ./{{.buildname}}
+  build:
+    desc: build app
+    dir: .
+    cmds:
+      - go build -o {{.buildname}} .
