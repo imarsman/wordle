@@ -2,37 +2,58 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"time"
 )
 
-const WORDS_URL = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
-const WORD_LENGTH = 5
-const MAX_GUESSES = 6
+//go:embed sgb-words.txt
+var words string
 
-func get_filled_color_vector(color string) [WORD_LENGTH]string {
-	color_vector := [WORD_LENGTH]string{}
-	for i := range color_vector {
-		color_vector[i] = color
+var wordList = []string{}
+
+// const WORDS_URL =
+// "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
+const (
+	wordLength = 5
+	maxGuesses = 6
+	grey       = "Grey"
+	green      = "Green"
+	yellow     = "Yellow"
+)
+
+func init() {
+	scanner := bufio.NewScanner(strings.NewReader(words))
+	for scanner.Scan() {
+		wordList = append(wordList, scanner.Text())
 	}
-	return color_vector
+	err := scanner.Err()
+	if err != nil {
+		panic(err)
+	}
 }
 
-func display_word(word string, color_vector [WORD_LENGTH]string) {
+func getFilledColourVector(color string) [wordLength]string {
+	colourVector := [wordLength]string{}
+	for i := range colourVector {
+		colourVector[i] = color
+	}
+	return colourVector
+}
+
+func displayWord(word string, colourVector [wordLength]string) {
 	for i, c := range word {
-		switch color_vector[i] {
-		case "Green":
+		switch colourVector[i] {
+		case green:
 			fmt.Print("\033[42m\033[1;30m")
-		case "Yellow":
+		case yellow:
 			fmt.Print("\033[43m\033[1;30m")
-		case "Grey":
+		case grey:
 			fmt.Print("\033[40m\033[1;37m")
 		}
 		fmt.Printf(" %c ", c)
@@ -44,79 +65,71 @@ func display_word(word string, color_vector [WORD_LENGTH]string) {
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	res, err := http.Get(WORDS_URL)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	body, _ := ioutil.ReadAll(res.Body)
-	words := strings.Split(string(body), "\r\n")
-
-	wordle_words := []string{}
-	for _, word := range words {
-		if len(word) == WORD_LENGTH {
-			wordle_words = append(wordle_words, strings.ToUpper(word))
+	wordleWords := []string{}
+	for _, word := range wordList {
+		if len(word) == wordLength {
+			wordleWords = append(wordleWords, strings.ToUpper(word))
 		}
 	}
-	sort.Strings(wordle_words)
+	sort.Strings(wordleWords)
 
-	selected_word := wordle_words[rand.Intn(len(wordle_words))]
+	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
 
 	reader := bufio.NewReader(os.Stdin)
-	guesses := []map[string][WORD_LENGTH]string{}
-	var guess_count int
-	for guess_count = 0; guess_count < MAX_GUESSES; guess_count++ {
-		fmt.Printf("Enter your guess (%v/%v): ", guess_count+1, MAX_GUESSES)
+	guesses := []map[string][wordLength]string{}
+	var guessCount int
+	for guessCount = 0; guessCount < maxGuesses; guessCount++ {
+		fmt.Printf("Enter your guess (%v/%v): ", guessCount+1, maxGuesses)
 
-		guess_word, err := reader.ReadString('\n')
+		guessWord, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatalln(err)
 		}
-		guess_word = strings.ToUpper(guess_word[:len(guess_word)-1])
+		guessWord = strings.ToUpper(guessWord[:len(guessWord)-1])
 
-		if guess_word == selected_word {
+		if guessWord == selectedWord {
 			fmt.Println("You guessed right!")
-			color_vector := get_filled_color_vector("Green")
+			colourVector := getFilledColourVector(green)
 
-			guesses = append(guesses, map[string][WORD_LENGTH]string{guess_word: color_vector})
+			guesses = append(guesses, map[string][wordLength]string{guessWord: colourVector})
 
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guesses {
-				for guess_word, color_vector := range guess {
-					display_word(guess_word, color_vector)
+				for guessWord, colourVector := range guess {
+					displayWord(guessWord, colourVector)
 				}
 			}
 			break
 		} else {
-			i := sort.SearchStrings(wordle_words, guess_word)
-			if i < len(wordle_words) && wordle_words[i] == guess_word {
-				color_vector := get_filled_color_vector("Grey")
-				for j, guess_letter := range guess_word {
-					for k, letter := range selected_word {
-						if guess_letter == letter {
+			i := sort.SearchStrings(wordleWords, guessWord)
+			if i < len(wordleWords) && wordleWords[i] == guessWord {
+				colourVector := getFilledColourVector(grey)
+				for j, guessLetter := range guessWord {
+					for k, letter := range selectedWord {
+						if guessLetter == letter {
 							if j == k {
-								color_vector[j] = "Green"
+								colourVector[j] = green
 								break
 							} else {
-								color_vector[j] = "Yellow"
+								colourVector[j] = yellow
 							}
 						}
 					}
 				}
-				guesses = append(guesses, map[string][WORD_LENGTH]string{guess_word: color_vector})
-				display_word(guess_word, color_vector)
+				guesses = append(guesses, map[string][wordLength]string{guessWord: colourVector})
+				displayWord(guessWord, colourVector)
 			} else {
-				guess_count--
-				fmt.Printf("Please guess a valid %v letter word from the wordlist", WORD_LENGTH)
+				guessCount--
+				fmt.Printf("Please guess a valid %v letter word from the wordlist", wordLength)
 				fmt.Println()
 			}
 		}
 	}
 
-	if guess_count == MAX_GUESSES {
+	if guessCount == maxGuesses {
 		fmt.Println("Better luck next time!")
-		color_vector := get_filled_color_vector("Green")
+		colourVector := getFilledColourVector("Green")
 		fmt.Print("The correct word is : ")
-		display_word(selected_word, color_vector)
+		displayWord(selectedWord, colourVector)
 	}
 }
