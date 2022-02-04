@@ -40,7 +40,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	sort.Strings(wordleWords)
+	sort.Strings(wordleWords) // sorting is probably unecessary
 }
 
 func getFilledColourVector(color string) [wordLength]string {
