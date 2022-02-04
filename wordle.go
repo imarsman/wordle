@@ -119,7 +119,7 @@ func main() {
 				displayWord(guessWord, colourVector)
 			} else {
 				guessCount--
-				fmt.Printf("Guessed word not found. Please guess a valid %v letter word from the wordlist", wordLength)
+				fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist", guessWord, wordLength)
 				fmt.Println()
 			}
 		}
