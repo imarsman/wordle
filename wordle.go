@@ -40,7 +40,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	sort.Strings(wordleWords) // sorting is probably unecessary
+	sort.Strings(wordleWords)
 }
 
 func getFilledColourVector(color string) [wordLength]string {
@@ -71,6 +71,8 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
+	// selectedWord := "looks"
+	// fmt.Println("selectedWord", selectedWord)
 
 	reader := bufio.NewReader(os.Stdin)
 	guesses := []map[string][wordLength]string{}
