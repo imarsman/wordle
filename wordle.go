@@ -15,7 +15,8 @@ import (
 //go:embed sgb-words.txt
 var words string
 
-var wordList = []string{}
+// var wordList = []string{}
+var wordleWords = []string{}
 
 // const WORDS_URL =
 // "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
@@ -30,12 +31,16 @@ const (
 func init() {
 	scanner := bufio.NewScanner(strings.NewReader(words))
 	for scanner.Scan() {
-		wordList = append(wordList, scanner.Text())
+		word := scanner.Text()
+		if len(word) == wordLength {
+			wordleWords = append(wordleWords, strings.TrimSpace(strings.ToUpper(word)))
+		}
 	}
 	err := scanner.Err()
 	if err != nil {
 		panic(err)
 	}
+	sort.Strings(wordleWords)
 }
 
 func getFilledColourVector(color string) [wordLength]string {
@@ -64,14 +69,6 @@ func displayWord(word string, colourVector [wordLength]string) {
 
 func main() {
 	rand.Seed(time.Now().Unix())
-
-	wordleWords := []string{}
-	for _, word := range wordList {
-		if len(word) == wordLength {
-			wordleWords = append(wordleWords, strings.ToUpper(word))
-		}
-	}
-	sort.Strings(wordleWords)
 
 	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
 
