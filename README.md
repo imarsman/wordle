@@ -1,9 +1,5 @@
 # Wordle
 
-[![forthebadge](https://forthebadge.com/images/badges/made-with-go.svg)](https://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/you-didnt-ask-for-this.svg)](https://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/compatibility-emacs.svg)](https://forthebadge.com)
-
 A terminal Wordle written in Go.
 
 Modified a bit to use standard go style, to use an embedded word list, to avoid
@@ -20,12 +16,22 @@ If you couldn't tell from the image, you need Go installed and then run:
 go run wordle.go
 ```
 
-## Pros
+## Options
 
-- Choose your wordlists
-- If you're good you can choose longer words
-- If you're bad you can increase number of guesses
+```
+% wordle -h                                                                                                   <master ✗>
+Usage: wordle [--tries TRIES]
 
-## Cons
+Options:
+  --tries TRIES, -t TRIES
+                         number of tries [default: 6]
+  --help, -h             display this help and exit
+```
 
-- Sometimes you get weird words with the default wordlist
+## Additions
+
+The list of letters tried so far are displayed on each try's line.
+
+## Issues
+
+Have to play this a while to see if there are any inconsistencies.
