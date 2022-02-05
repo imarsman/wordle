@@ -6,7 +6,7 @@ Modified a bit to use standard go style, to use an embedded word list, to avoid
 duplication of word lists. The logic to do the colouring and the storing of the
 colour data is great and I did not really touch that.
 
-![Example](assets/example.png)
+![Example](assets/sample.png)
 
 ## Running
 
