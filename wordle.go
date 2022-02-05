@@ -10,97 +10,29 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/alexflint/go-arg"
 )
 
-type colourID int
+//go:embed sgb-words.txt
+var words string
+
+var maxGuesses = 6
 
 const (
 	greyColourID colourID = iota
 	yellowColourID
 	greenColourID
-)
 
-func getColourName(c colourID) (result string) {
-	switch c {
-	case greyColourID:
-		result = greyColour
-	case yellowColourID:
-		result = yellowColour
-	case greenColourID:
-		result = greenColour
-	}
-
-	return
-}
-
-type foundItem struct {
-	colour colourID
-	letter rune
-}
-
-type foundItemSet struct {
-	items *[]foundItem
-}
-
-func (fis *foundItemSet) String() (str string) {
-	for _, v := range *fis.items {
-		str = str + string(v.letter)
-	}
-
-	return
-}
-
-func (fis *foundItemSet) add(letter rune, colour colourID) {
-	i := sort.Search(len(*fis.items), func(pos int) bool {
-		return (*fis.items)[pos].letter >= letter
-	})
-
-	if len(*fis.items) > 0 {
-		if i < len(*fis.items) && (*fis.items)[i].letter == letter {
-			if (*fis.items)[i].colour < colour {
-				(*fis.items)[i].colour = colour
-			}
-		} else {
-			*fis.items = append(*fis.items, foundItem{letter: letter, colour: colour})
-		}
-	} else {
-		*fis.items = append(*fis.items, foundItem{letter: letter, colour: colour})
-	}
-
-	sort.Slice(*fis.items, func(i int, j int) bool {
-		return ((*fis.items)[i].letter) < ((*fis.items)[j].letter)
-	})
-	return
-}
-
-func (fis *foundItemSet) colourVector() (vector []string) {
-	for _, v := range *fis.items {
-		vector = append(vector, getColourName(v.colour))
-	}
-	return
-}
-
-var foundItems foundItemSet
-
-//go:embed sgb-words.txt
-var words string
-
-// var wordList = []string{}
-var wordleWords = []string{}
-
-// const WORDS_URL =
-// "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
-const (
 	wordLength   = 5
-	maxGuesses   = 6
 	greyColour   = "Grey"
 	yellowColour = "Yellow"
 	greenColour  = "Green"
 )
 
 func init() {
-	foundItems = foundItemSet{}
-	foundItems.items = &[]foundItem{}
+	triedItems = triedItemSet{}
+	triedItems.items = &[]triedItem{}
 
 	scanner := bufio.NewScanner(strings.NewReader(words))
 	for scanner.Scan() {
@@ -116,11 +48,82 @@ func init() {
 	sort.Strings(wordleWords)
 }
 
+var triedItems triedItemSet // each run has an increasing array of letters tried
+
+var wordleWords = []string{} // slice to hold words
+
+type colourID int // to sort and keep track of colours
+
+type triedItem struct {
+	colour colourID
+	letter rune
+}
+
+func getColourName(c colourID) (result string) {
+	switch c {
+	case greyColourID:
+		result = greyColour
+	case yellowColourID:
+		result = yellowColour
+	case greenColourID:
+		result = greenColour
+	}
+
+	return
+}
+
+type triedItemSet struct {
+	items *[]triedItem
+}
+
+func (fis *triedItemSet) String() (str string) {
+	for _, v := range *fis.items {
+		str = str + string(v.letter)
+	}
+
+	return
+}
+
+// add letter if it's new or change its colour if it's changed towards green
+func (fis *triedItemSet) add(letter rune, colour colourID) {
+	i := sort.Search(len(*fis.items), func(pos int) bool {
+		return (*fis.items)[pos].letter >= letter
+	})
+
+	if len(*fis.items) > 0 {
+		if i < len(*fis.items) && (*fis.items)[i].letter == letter {
+			if (*fis.items)[i].colour < colour {
+				(*fis.items)[i].colour = colour
+			}
+		} else {
+			*fis.items = append(*fis.items, triedItem{letter: letter, colour: colour})
+		}
+	} else {
+		*fis.items = append(*fis.items, triedItem{letter: letter, colour: colour})
+	}
+
+	sort.Slice(*fis.items, func(i int, j int) bool {
+		return ((*fis.items)[i].letter) < ((*fis.items)[j].letter)
+	})
+
+	return
+}
+
+// colourVector get a vector (slice) of colour names for the list of tried letters
+func (fis *triedItemSet) colourVector() (vector []string) {
+	for _, v := range *fis.items {
+		vector = append(vector, getColourName(v.colour))
+	}
+
+	return
+}
+
 func getFilledColourVector(color string) []string {
-	colourVector := make([]string, 5, 5)
+	colourVector := make([]string, wordLength, wordLength)
 	for i := range colourVector {
 		colourVector[i] = color
 	}
+
 	return colourVector
 }
 
@@ -143,12 +146,19 @@ func displayWord(word string, colourVector []string) {
 	}
 }
 
+// args CLI args
+type args struct {
+	Tries int `arg:"-t" default:"6" help:"number of tries"`
+}
+
 func main() {
+	var callArgs args // initialize call args structure
+	arg.MustParse(&callArgs)
+	maxGuesses = callArgs.Tries
+
 	rand.Seed(time.Now().Unix())
 
 	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
-	// selectedWord := "looks"
-	// fmt.Println("selectedWord", selectedWord)
 
 	reader := bufio.NewReader(os.Stdin)
 	guesses := []map[string][]string{}
@@ -195,13 +205,13 @@ func main() {
 							}
 						}
 					}
-					foundItems.add(guessLetter, cid)
+					triedItems.add(guessLetter, cid)
 				}
 				guesses = append(guesses, map[string][]string{guessWord: colourVector})
 				displayWord(guessWord, colourVector)
 				fmt.Print(" [")
-				letters := foundItems.String()
-				vector := foundItems.colourVector()
+				letters := triedItems.String()
+				vector := triedItems.colourVector()
 				displayWord(letters, vector)
 				fmt.Print("]")
 				fmt.Println()
