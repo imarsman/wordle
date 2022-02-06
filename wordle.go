@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/jwalton/gchalk"
 )
 
 //go:embed sgb-words.txt
@@ -139,16 +140,15 @@ func (ls *letterSet) printWordLetters() {
 		return
 	}
 	for _, l := range *ls.items {
+		str := " " + string(l.letter) + " "
 		switch l.colour {
 		case greenColourID:
-			fmt.Print("\033[42m\033[1;30m")
+			fmt.Print(gchalk.BgGreen(str))
 		case yellowColourID:
-			fmt.Print("\033[43m\033[1;30m")
+			fmt.Print(gchalk.BgYellow(str))
 		case greyColourID:
-			fmt.Print("\033[40m\033[1;37m")
+			fmt.Print(gchalk.BgGrey(str))
 		}
-		fmt.Printf(" %c ", l.letter)
-		fmt.Print("\033[m\033[m")
 	}
 }
 
