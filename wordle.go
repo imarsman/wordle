@@ -34,8 +34,7 @@ var wordleWords = []string{} // slice to hold words
 var triedItems letterSet     // each run has an increasing array of letters tried
 
 func init() {
-	triedItems = letterSet{}
-	triedItems.items = &[]letterItem{}
+	triedItems = newEmptyLetterSet()
 
 	scanner := bufio.NewScanner(strings.NewReader(words))
 	for scanner.Scan() {
@@ -85,7 +84,11 @@ func newEmptyLetterSet() (ls letterSet) {
 // newSizedLetterSet new letterset with size
 func newSizedLetterSet(size int) (ls letterSet) {
 	ls.items = &[]letterItem{}
-	*ls.items = make([]letterItem, size, size)
+	// *ls.items = make([]letterItem, size, size)
+	for i := 0; i < size; i++ {
+		li := new(letterItem)
+		(*ls.items) = append((*ls.items), *li)
+	}
 	return
 }
 
@@ -97,8 +100,8 @@ func (ls *letterSet) String() (str string) {
 	return
 }
 
-// add letter if it's new or change its colour if it's changed towards green
-func (ls *letterSet) add(letter rune, colour colourID) {
+// addWithColour letter if it's new or change its colour if it's changed towards green
+func (ls *letterSet) addWithColour(letter rune, colour colourID) {
 	i := sort.Search(len(*ls.items), func(pos int) bool {
 		return (*ls.items)[pos].letter >= letter
 	})
@@ -122,44 +125,9 @@ func (ls *letterSet) add(letter rune, colour colourID) {
 	return
 }
 
-// // colourVector get a vector (slice) of colour names for the list of tried letters
-// func (ls *letterSet) colourVector() (vector []string) {
-// 	for _, v := range *ls.items {
-// 		vector = append(vector, getColourName(v.colour))
-// 	}
-
-// 	return
-// }
-
-func (ls *letterSet) fillWithColour(colour colourID) {
-	for _, v := range *ls.items {
-		v.colour = colour
-	}
-
-	return
-}
-
-// func getFilledLetterSet(colourID colourID) (ls letterSet) {
-// 	ls = newSizedLetterSet(wordLength)
-// 	for i := range *ls.items {
-// 		(*ls.items)[i].colour = colourID
-// 	}
-
-// 	return ls
-// }
-
-// func getFilledColourVector(color string) []string {
-// 	colourVector := make([]string, wordLength, wordLength)
-// 	for i := range colourVector {
-// 		colourVector[i] = color
-// 	}
-
-// 	return colourVector
-// }
-
 func (ls *letterSet) filledColourVector(colourID colourID) {
-	for _, v := range *ls.items {
-		v.colour = colourID
+	for i := range *ls.items {
+		(*ls.items)[i].colour = colourID
 	}
 
 	return
@@ -184,28 +152,30 @@ func (ls *letterSet) printWordLetters() {
 	}
 }
 
-// // func displayWord(word string, colourVector [wordLength]string) {
-// func displayWord(word string, colourVector []string) {
-// 	if len(word) == 0 {
-// 		return
-// 	}
-// 	for i, c := range word {
-// 		switch colourVector[i] {
-// 		case greenColour:
-// 			fmt.Print("\033[42m\033[1;30m")
-// 		case yellowColour:
-// 			fmt.Print("\033[43m\033[1;30m")
-// 		case greyColour:
-// 			fmt.Print("\033[40m\033[1;37m")
-// 		}
-// 		fmt.Printf(" %c ", c)
-// 		fmt.Print("\033[m\033[m")
-// 	}
-// }
+// printWordLetters print letters for word with colour
+func (ls *letterSet) printWordLettersBlank() {
+	if len(*ls.items) == 0 {
+		return
+	}
+	for _, l := range *ls.items {
+		switch l.colour {
+		case greenColourID:
+			fmt.Print("\033[42m\033[1;30m")
+		case yellowColourID:
+			fmt.Print("\033[43m\033[1;30m")
+		case greyColourID:
+			fmt.Print("\033[40m\033[1;37m")
+		}
+		fmt.Printf(" %c ", ' ')
+		fmt.Print("\033[m\033[m")
+	}
+}
 
 // args CLI args
 type args struct {
-	Tries int `arg:"-t" default:"6" help:"number of tries"`
+	Tries int  `arg:"-t" default:"6" help:"number of tries"`
+	Show  bool `arg:"-s" help:"show word"`
+	Blank bool `arg:"-b" help:"show try results with no letters"`
 }
 
 func main() {
@@ -217,15 +187,16 @@ func main() {
 
 	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
 
+	if callArgs.Show {
+		fmt.Println(selectedWord)
+	}
+
 	reader := bufio.NewReader(os.Stdin)
 
-	guessesLetters := newSizedLetterSet(maxGuesses)
-	// guessesLetters := letterSet{}
-	// items := make([]letterItem, maxGuesses, maxGuesses)
-	// guessesLetters.items = &items
+	guessesLetters := newSizedLetterSet(wordLength)
 
 	var guessCount int
-	var guessesSet = make([]letterSet, 6, 6)
+	var guessesSet = make([]letterSet, 0, 0)
 
 	var evaluate = func() {
 		for guessCount = 0; guessCount < maxGuesses; guessCount++ {
@@ -245,17 +216,23 @@ func main() {
 				fmt.Println("You guessed right!")
 
 				guessesLetters.filledColourVector(greenColourID)
+				guessesSet = append(guessesSet, guessesLetters)
 				fmt.Println("Your wordle matrix is: ")
 				for _, guess := range guessesSet {
-					guess.printWordLetters()
-					fmt.Println()
+					if callArgs.Blank {
+						guess.printWordLettersBlank()
+						fmt.Println()
+					} else {
+						guess.printWordLetters()
+						fmt.Println()
+					}
 				}
 				break
 			} else {
 				i := sort.SearchStrings(wordleWords, guessWord)
 				if i < len(wordleWords) && wordleWords[i] == guessWord {
+					var cid colourID
 					for j, guessLetter := range guessWord {
-						var cid colourID
 						cid = greyColourID
 						for k, letter := range selectedWord {
 							if guessLetter == letter {
@@ -269,7 +246,7 @@ func main() {
 								}
 							}
 						}
-						triedItems.add(guessLetter, cid)
+						triedItems.addWithColour(guessLetter, cid)
 					}
 					guessesSet = append(guessesSet, guessesLetters)
 					guessesLetters.printWordLetters()
@@ -279,13 +256,12 @@ func main() {
 					fmt.Println()
 				} else {
 					guessCount--
-					fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist", guessWord, wordLength)
-					fmt.Println()
+					fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist\n", guessWord, wordLength)
 				}
 			}
 			if guessCount == maxGuesses {
 				fmt.Println("Better luck next time!")
-				guessesLetters.fillWithColour(greenColourID)
+				guessesLetters.filledColourVector(greenColourID)
 				fmt.Print("The correct word is : ")
 				guessesLetters.printWordLetters()
 				fmt.Println()
