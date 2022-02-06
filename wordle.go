@@ -193,12 +193,11 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	guessesLetters := newSizedLetterSet(wordLength)
-
 	var guessCount int
 	var guessesSet = make([]letterSet, 0, 0)
 
 	// var evaluate = func() {
+tries:
 	for guessCount = 0; guessCount < maxGuesses; guessCount++ {
 		fmt.Printf("Enter your guess (%v/%v): ", guessCount+1, maxGuesses)
 
@@ -206,7 +205,16 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		guessWord = strings.ToUpper(guessWord[:len(guessWord)-1])
+		guessWord = strings.ToUpper(guessWord[:len(guessWord)-1]) // trim word and uc
+
+		if len(guessWord) != wordLength {
+			// fmt.Println(guessWord)
+			fmt.Printf("The word you entered was %d letters. You need a word with %d letters\n", len(guessWord), wordLength)
+			guessCount--
+			continue tries
+		}
+
+		guessesLetters := newSizedLetterSet(wordLength)
 		// fill in letters for items then later fill in colour as needed
 		for i, v := range guessWord {
 			(*guessesLetters.items)[i].letter = v
@@ -218,6 +226,7 @@ func main() {
 
 			guessesLetters.filledColourVector(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
+			// guessesSet[guessCount] = guessesLetters
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guessesSet {
 				if callArgs.Blank {
