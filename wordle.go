@@ -198,76 +198,76 @@ func main() {
 	var guessCount int
 	var guessesSet = make([]letterSet, 0, 0)
 
-	var evaluate = func() {
-		for guessCount = 0; guessCount < maxGuesses; guessCount++ {
-			fmt.Printf("Enter your guess (%v/%v): ", guessCount+1, maxGuesses)
+	// var evaluate = func() {
+	for guessCount = 0; guessCount < maxGuesses; guessCount++ {
+		fmt.Printf("Enter your guess (%v/%v): ", guessCount+1, maxGuesses)
 
-			guessWord, err := reader.ReadString('\n')
-			if err != nil {
-				log.Fatalln(err)
-			}
-			guessWord = strings.ToUpper(guessWord[:len(guessWord)-1])
-			// fill in letters for items then later fill in colour as needed
-			for i, v := range guessWord {
-				(*guessesLetters.items)[i].letter = v
-			}
+		guessWord, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatalln(err)
+		}
+		guessWord = strings.ToUpper(guessWord[:len(guessWord)-1])
+		// fill in letters for items then later fill in colour as needed
+		for i, v := range guessWord {
+			(*guessesLetters.items)[i].letter = v
+			(*guessesLetters.items)[i].colour = greyColourID
+		}
 
-			if guessWord == selectedWord {
-				fmt.Println("You guessed right!")
+		if guessWord == selectedWord {
+			fmt.Println("You guessed right!")
 
-				guessesLetters.filledColourVector(greenColourID)
-				guessesSet = append(guessesSet, guessesLetters)
-				fmt.Println("Your wordle matrix is: ")
-				for _, guess := range guessesSet {
-					if callArgs.Blank {
-						guess.printWordLettersBlank()
-						fmt.Println()
-					} else {
-						guess.printWordLetters()
-						fmt.Println()
-					}
-				}
-				break
-			} else {
-				i := sort.SearchStrings(wordleWords, guessWord)
-				if i < len(wordleWords) && wordleWords[i] == guessWord {
-					var cid colourID
-					for j, guessLetter := range guessWord {
-						cid = greyColourID
-						for k, letter := range selectedWord {
-							if guessLetter == letter {
-								if j == k {
-									cid = greenColourID
-									(*guessesLetters.items)[j].colour = greenColourID
-									break
-								} else {
-									cid = yellowColourID
-									(*guessesLetters.items)[j].colour = yellowColourID
-								}
-							}
-						}
-						triedItems.addWithColour(guessLetter, cid)
-					}
-					guessesSet = append(guessesSet, guessesLetters)
-					guessesLetters.printWordLetters()
-					fmt.Print(" [")
-					triedItems.printWordLetters()
-					fmt.Print("]")
+			guessesLetters.filledColourVector(greenColourID)
+			guessesSet = append(guessesSet, guessesLetters)
+			fmt.Println("Your wordle matrix is: ")
+			for _, guess := range guessesSet {
+				if callArgs.Blank {
+					guess.printWordLettersBlank()
 					fmt.Println()
 				} else {
-					guessCount--
-					fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist\n", guessWord, wordLength)
+					guess.printWordLetters()
+					fmt.Println()
 				}
 			}
-			if guessCount == maxGuesses {
-				fmt.Println("Better luck next time!")
-				guessesLetters.filledColourVector(greenColourID)
-				fmt.Print("The correct word is : ")
+			break
+		} else {
+			i := sort.SearchStrings(wordleWords, guessWord)
+			if i < len(wordleWords) && wordleWords[i] == guessWord {
+				for j, guessLetter := range guessWord {
+					for k, letter := range selectedWord {
+						if guessLetter == letter {
+							if j == k {
+								(*guessesLetters.items)[j].colour = greenColourID
+								triedItems.addWithColour(guessLetter, greenColourID)
+								break
+							} else {
+								(*guessesLetters.items)[j].colour = yellowColourID
+								triedItems.addWithColour(guessLetter, yellowColourID)
+							}
+						}
+					}
+					// this will have no effect if higher colour already present
+					triedItems.addWithColour(guessLetter, greyColourID)
+				}
+				guessesSet = append(guessesSet, guessesLetters)
 				guessesLetters.printWordLetters()
+				fmt.Print(" [")
+				triedItems.printWordLetters()
+				fmt.Print("]")
 				fmt.Println()
+			} else {
+				guessCount--
+				fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist\n", guessWord, wordLength)
 			}
 		}
+		if guessCount == maxGuesses {
+			fmt.Println("Better luck next time!")
+			guessesLetters.filledColourVector(greenColourID)
+			fmt.Print("The correct word is : ")
+			guessesLetters.printWordLetters()
+			fmt.Println()
+		}
 	}
+	// }
 
-	evaluate()
+	// evaluate()
 }
