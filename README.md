@@ -2,12 +2,11 @@
 
 A terminal Wordle written in Go.
 
-Modified a bit from the original (AshishShenoy/wordle). Most of my Go work on
-Github is done to explore how to implement code in a way that works for me. The
-original works great but having worked with languages having classes for so long
-I have an easier time dealing with structs than the maps and arrays in the
-project this one is forked from. All of this sharing of ideas is possible thanks
-to open source, a hard struggle to democratize software.
+Modified a bit from the original (AshishShenoy/wordle), which I was very excited
+to find. Most of my Go work on Github is done to explore how to implement code
+in a way that works for me. The original works great but having worked with
+languages having classes for so long I have an easier time dealing with structs
+than the maps and arrays in the project this one is forked from.
 
 ![Example](assets/sample.png)
 
