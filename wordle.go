@@ -23,6 +23,8 @@ var triedItems letterSet     // each run has an increasing array of letters trie
 
 var maxGuesses int // max guesses - defaults to 6 and can be set
 
+type colourID int // to sort and keep track of colours
+
 const (
 	greyColourID   colourID = iota // 0
 	yellowColourID                 // 1
@@ -47,8 +49,6 @@ func init() {
 	}
 	sort.Strings(wordleWords)
 }
-
-type colourID int // to sort and keep track of colours
 
 // letterItem a letter with a colour
 type letterItem struct {
