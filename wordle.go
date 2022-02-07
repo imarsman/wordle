@@ -36,6 +36,7 @@ const (
 func init() {
 	triedItems = newEmptyLetterSet()
 
+	// read in words from embedded list
 	scanner := bufio.NewScanner(strings.NewReader(words))
 	for scanner.Scan() {
 		word := scanner.Text()
@@ -47,13 +48,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	sort.Strings(wordleWords)
+	sort.Strings(wordleWords) // sort words
 }
 
 // letterItem a letter with a colour
 type letterItem struct {
-	colour colourID
 	letter rune
+	colour colourID
 }
 
 // letterSet a list of letter items (each having a letter and a colourID)
