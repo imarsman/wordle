@@ -218,7 +218,6 @@ tries:
 
 			guessesLetters.fillItemsWithColour(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
-			// guessesSet[guessCount] = guessesLetters
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guessesSet {
 				if callArgs.Blank {
