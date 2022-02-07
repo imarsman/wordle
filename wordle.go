@@ -181,7 +181,7 @@ func main() {
 	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
 
 	if callArgs.Show {
-		fmt.Println(selectedWord)
+		fmt.Println("Selected word", selectedWord)
 	}
 
 	reader := bufio.NewReader(os.Stdin)
