@@ -132,7 +132,7 @@ func (ls *letterSet) addWithColour(letter rune, colour colourID) {
 }
 
 // fillColourVector fill all items in a letterSet with a colour
-func (ls *letterSet) setItemColour(colourID colourID) {
+func (ls *letterSet) setAllItemColour(colourID colourID) {
 	for i := range *ls.items {
 		// (*ls.items)[i].colour = colourID
 		(*ls.items)[i].colour = colourID
@@ -229,7 +229,7 @@ tries:
 		if guessWord == selectedWord {
 			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
 
-			guessesLetters.setItemColour(greenColourID)
+			guessesLetters.setAllItemColour(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guessesSet {
@@ -275,7 +275,7 @@ tries:
 		if guessCount+1 == maxGuesses {
 			fmt.Println(gchalk.WithBold().Paint("\nBetter luck next time!"))
 			answer := newFilledLetterSet(selectedWord)
-			answer.setItemColour(greenColourID)
+			answer.setAllItemColour(greenColourID)
 			fmt.Print("The correct word is : ")
 			answer.printLettersWithColour()
 			fmt.Println()
