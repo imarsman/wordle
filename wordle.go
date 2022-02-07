@@ -18,7 +18,10 @@ import (
 //go:embed sgb-words.txt
 var words string
 
-var maxGuesses = 6
+var wordleWords = []string{} // slice to hold words
+var triedItems letterSet     // each run has an increasing array of letters tried
+
+var maxGuesses int // max guesses - defaults to 6 and can be set
 
 const (
 	greyColourID colourID = iota
@@ -30,9 +33,6 @@ const (
 	yellowColour = "Yellow"
 	greenColour  = "Green"
 )
-
-var wordleWords = []string{} // slice to hold words
-var triedItems letterSet     // each run has an increasing array of letters tried
 
 func init() {
 	triedItems = newEmptyLetterSet()
@@ -53,11 +53,13 @@ func init() {
 
 type colourID int // to sort and keep track of colours
 
+// letterItem a letter with a colour
 type letterItem struct {
 	colour colourID
 	letter rune
 }
 
+// getColourName get colour name for ID
 func getColourName(c colourID) (result string) {
 	switch c {
 	case greyColourID:
@@ -71,6 +73,7 @@ func getColourName(c colourID) (result string) {
 	return
 }
 
+// letterSet a list of letter items (each having a letter and a colourID)
 type letterSet struct {
 	items *[]letterItem
 }
@@ -93,6 +96,7 @@ func newSizedLetterSet(size int) (ls letterSet) {
 	return
 }
 
+// String get string output for items
 func (ls *letterSet) String() (str string) {
 	for _, v := range *ls.items {
 		str = str + string(v.letter)
@@ -101,7 +105,10 @@ func (ls *letterSet) String() (str string) {
 	return
 }
 
-// addWithColour letter if it's new or change its colour if it's changed towards green
+// addWithColour add new letter change colour if changed towards green
+// The colour change relies on the numbering of the colourID, which is ordinal
+// with grey first then yellow then green.
+// The function relies on a sorted list to do the search
 func (ls *letterSet) addWithColour(letter rune, colour colourID) {
 	i := sort.Search(len(*ls.items), func(pos int) bool {
 		return (*ls.items)[pos].letter >= letter
@@ -119,6 +126,7 @@ func (ls *letterSet) addWithColour(letter rune, colour colourID) {
 		*ls.items = append(*ls.items, letterItem{letter: letter, colour: colour})
 	}
 
+	// sort by letter
 	sort.Slice(*ls.items, func(i int, j int) bool {
 		return ((*ls.items)[i].letter) < ((*ls.items)[j].letter)
 	})
@@ -126,16 +134,18 @@ func (ls *letterSet) addWithColour(letter rune, colour colourID) {
 	return
 }
 
-func (ls *letterSet) filledColourVector(colourID colourID) {
+// fillColourVector fill all items in a letterSet with a colour
+func (ls *letterSet) fillItemsWithColour(colourID colourID) {
 	for i := range *ls.items {
+		// (*ls.items)[i].colour = colourID
 		(*ls.items)[i].colour = colourID
 	}
 
 	return
 }
 
-// printWordLetters print letters for word with colour
-func (ls *letterSet) printWordLetters() {
+// printLettersWithColour print letters for word with colour
+func (ls *letterSet) printLettersWithColour() {
 	if len(*ls.items) == 0 {
 		return
 	}
@@ -223,7 +233,7 @@ tries:
 		if guessWord == selectedWord {
 			fmt.Println("You guessed right!")
 
-			guessesLetters.filledColourVector(greenColourID)
+			guessesLetters.fillItemsWithColour(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
 			// guessesSet[guessCount] = guessesLetters
 			fmt.Println("Your wordle matrix is: ")
@@ -232,7 +242,7 @@ tries:
 					guess.printWordLettersBlank()
 					fmt.Println()
 				} else {
-					guess.printWordLetters()
+					guess.printLettersWithColour()
 					fmt.Println()
 				}
 			}
@@ -244,12 +254,12 @@ tries:
 					for k, letter := range selectedWord {
 						if guessLetter == letter {
 							if j == k {
-								(*guessesLetters.items)[j].colour = greenColourID
-								triedItems.addWithColour(guessLetter, greenColourID)
+								(*guessesLetters.items)[j].colour = greenColourID    // set guess letter green
+								triedItems.addWithColour(guessLetter, greenColourID) // set triedn item green
 								break
 							} else {
-								(*guessesLetters.items)[j].colour = yellowColourID
-								triedItems.addWithColour(guessLetter, yellowColourID)
+								(*guessesLetters.items)[j].colour = yellowColourID    // set guess letter yellow
+								triedItems.addWithColour(guessLetter, yellowColourID) // set tried item yellow
 							}
 						}
 					}
@@ -258,9 +268,9 @@ tries:
 				}
 				guessesSet = append(guessesSet, guessesLetters)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
-				guessesLetters.printWordLetters()
+				guessesLetters.printLettersWithColour()
 				fmt.Print(gchalk.WithBold().Paint(" Tried "))
-				triedItems.printWordLetters()
+				triedItems.printLettersWithColour()
 				fmt.Println()
 			} else {
 				guessCount--
@@ -269,9 +279,9 @@ tries:
 		}
 		if guessCount == maxGuesses {
 			fmt.Println("Better luck next time!")
-			guessesLetters.filledColourVector(greenColourID)
+			guessesLetters.fillItemsWithColour(greenColourID)
 			fmt.Print("The correct word is : ")
-			guessesLetters.printWordLetters()
+			guessesLetters.printLettersWithColour()
 			fmt.Println()
 		}
 	}
