@@ -24,14 +24,11 @@ var triedItems letterSet     // each run has an increasing array of letters trie
 var maxGuesses int // max guesses - defaults to 6 and can be set
 
 const (
-	greyColourID colourID = iota
-	yellowColourID
-	greenColourID
+	greyColourID   colourID = iota // 0
+	yellowColourID                 // 1
+	greenColourID                  // 2
 
-	wordLength   = 5
-	greyColour   = "Grey"
-	yellowColour = "Yellow"
-	greenColour  = "Green"
+	wordLength = 5 // keep static for now
 )
 
 func init() {
@@ -57,20 +54,6 @@ type colourID int // to sort and keep track of colours
 type letterItem struct {
 	colour colourID
 	letter rune
-}
-
-// getColourName get colour name for ID
-func getColourName(c colourID) (result string) {
-	switch c {
-	case greyColourID:
-		result = greyColour
-	case yellowColourID:
-		result = yellowColour
-	case greenColourID:
-		result = greenColour
-	}
-
-	return
 }
 
 // letterSet a list of letter items (each having a letter and a colourID)
@@ -231,7 +214,7 @@ tries:
 		}
 
 		if guessWord == selectedWord {
-			fmt.Println("You guessed right!")
+			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
 
 			guessesLetters.fillItemsWithColour(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
@@ -277,8 +260,8 @@ tries:
 				fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist\n", guessWord, wordLength)
 			}
 		}
-		if guessCount == maxGuesses {
-			fmt.Println("Better luck next time!")
+		if guessCount+1 == maxGuesses {
+			fmt.Println(gchalk.WithBold().Paint("\nBetter luck next time!"))
 			guessesLetters.fillItemsWithColour(greenColourID)
 			fmt.Print("The correct word is : ")
 			guessesLetters.printLettersWithColour()
