@@ -11,6 +11,11 @@ to open source, a hard struggle to democratize software.
 
 ![Example](assets/sample.png)
 
+## Building
+
+There is a Taskfile.yml file included in this project. You can build using `task
+build`, and if you have a `~/bin` directory you can build using `task install`.
+
 ## Running
 
 You need go 1.16+ installed to allow embedding.
