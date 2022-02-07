@@ -10,7 +10,7 @@ colour data is great and I did not really touch that.
 
 ## Running
 
-If you couldn't tell from the image, you need Go installed and then run:
+You need go 1.16+ installed to allow embedding.
 
 ```
 go run wordle.go
@@ -19,12 +19,14 @@ go run wordle.go
 ## Options
 
 ```
-% wordle -h                                                                                                   <master ✗>
-Usage: wordle [--tries TRIES]
+% wordle -h                                                                                                     <master>
+Usage: wordle [--tries TRIES] [--show] [--blank]
 
 Options:
   --tries TRIES, -t TRIES
                          number of tries [default: 6]
+  --show, -s             show word
+  --blank, -b            show try results with no letters
   --help, -h             display this help and exit
 ```
 
