@@ -70,6 +70,19 @@ func newEmptyLetterSet() (ls letterSet) {
 }
 
 // newSizedLetterSet new letterset with size
+func newFilledLetterSet(word string) (ls letterSet) {
+	ls.items = &[]letterItem{}
+	// *ls.items = make([]letterItem, size, size)
+	for _, v := range word {
+		li := new(letterItem)
+		li.letter = v
+		(*ls.items) = append((*ls.items), *li)
+	}
+
+	return
+}
+
+// newSizedLetterSet new letterset with size
 func newSizedLetterSet(size int) (ls letterSet) {
 	ls.items = &[]letterItem{}
 	// *ls.items = make([]letterItem, size, size)
@@ -261,9 +274,10 @@ tries:
 		}
 		if guessCount+1 == maxGuesses {
 			fmt.Println(gchalk.WithBold().Paint("\nBetter luck next time!"))
-			guessesLetters.setItemColour(greenColourID)
+			answer := newFilledLetterSet(selectedWord)
+			answer.setItemColour(greenColourID)
 			fmt.Print("The correct word is : ")
-			guessesLetters.printLettersWithColour()
+			answer.printLettersWithColour()
 			fmt.Println()
 		}
 	}
