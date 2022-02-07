@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	_ "embed"
 	"fmt"
 	"log"
@@ -85,28 +86,30 @@ func newFilledLetterSet(word string) (ls letterSet) {
 // newSizedLetterSet new letterset with size
 func newSizedLetterSet(size int) (ls letterSet) {
 	ls.items = &[]letterItem{}
-	// *ls.items = make([]letterItem, size, size)
 	for i := 0; i < size; i++ {
 		li := new(letterItem)
 		(*ls.items) = append((*ls.items), *li)
 	}
+
 	return
 }
 
 // String get string output for items
-func (ls *letterSet) String() (str string) {
+func (ls *letterSet) String() string {
+	var buf bytes.Buffer
+
 	for _, v := range *ls.items {
-		str = str + string(v.letter)
+		buf.WriteRune(v.letter)
 	}
 
-	return
+	return buf.String()
 }
 
-// addWithColour add new letter change colour if changed towards green
+// addLetterWithColour add new letter change colour if changed towards green
 // The colour change relies on the numbering of the colourID, which is ordinal
 // with grey first then yellow then green.
 // The function relies on a sorted list to do the search
-func (ls *letterSet) addWithColour(letter rune, colour colourID) {
+func (ls *letterSet) addLetterWithColour(letter rune, colour colourID) {
 	i := sort.Search(len(*ls.items), func(pos int) bool {
 		return (*ls.items)[pos].letter >= letter
 	})
@@ -132,7 +135,7 @@ func (ls *letterSet) addWithColour(letter rune, colour colourID) {
 }
 
 // fillColourVector fill all items in a letterSet with a colour
-func (ls *letterSet) setAllItemColour(colourID colourID) {
+func (ls *letterSet) setAllLettersColour(colourID colourID) {
 	for i := range *ls.items {
 		// (*ls.items)[i].colour = colourID
 		(*ls.items)[i].colour = colourID
@@ -180,9 +183,10 @@ func (ls *letterSet) printWordLettersBlank() {
 
 // args CLI args
 type args struct {
-	Tries int  `arg:"-t" default:"6" help:"number of tries"`
-	Show  bool `arg:"-s" help:"show word"`
-	Blank bool `arg:"-b" help:"show try results with no letters"`
+	Tries      int  `arg:"-t" default:"6" help:"number of tries"`
+	Show       bool `arg:"-s" help:"show word"`
+	Blank      bool `arg:"-b" help:"show try results with no letters"`
+	HideAnswer bool `arg:"-H" help:"hide answer at end if not guessed"`
 }
 
 func main() {
@@ -229,7 +233,7 @@ tries:
 		if guessWord == selectedWord {
 			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
 
-			guessesLetters.setAllItemColour(greenColourID)
+			guessesLetters.setAllLettersColour(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guessesSet {
@@ -249,17 +253,17 @@ tries:
 					for k, letter := range selectedWord {
 						if guessLetter == letter {
 							if j == k {
-								(*guessesLetters.items)[j].colour = greenColourID    // set guess letter green
-								triedItems.addWithColour(guessLetter, greenColourID) // set triedn item green
+								(*guessesLetters.items)[j].colour = greenColourID          // set guess letter green
+								triedItems.addLetterWithColour(guessLetter, greenColourID) // set triedn item green
 								break
 							} else {
-								(*guessesLetters.items)[j].colour = yellowColourID    // set guess letter yellow
-								triedItems.addWithColour(guessLetter, yellowColourID) // set tried item yellow
+								(*guessesLetters.items)[j].colour = yellowColourID          // set guess letter yellow
+								triedItems.addLetterWithColour(guessLetter, yellowColourID) // set tried item yellow
 							}
 						}
 					}
 					// this will have no effect if higher colour already present
-					triedItems.addWithColour(guessLetter, greyColourID)
+					triedItems.addLetterWithColour(guessLetter, greyColourID)
 				}
 				guessesSet = append(guessesSet, guessesLetters)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
@@ -272,10 +276,11 @@ tries:
 				fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist\n", guessWord, wordLength)
 			}
 		}
-		if guessCount+1 == maxGuesses {
+		// If we've run out of words, end and print out the correct word
+		if guessCount+1 == maxGuesses && !callArgs.HideAnswer {
 			fmt.Println(gchalk.WithBold().Paint("\nBetter luck next time!"))
 			answer := newFilledLetterSet(selectedWord)
-			answer.setAllItemColour(greenColourID)
+			answer.setAllLettersColour(greenColourID)
 			fmt.Print("The correct word is : ")
 			answer.printLettersWithColour()
 			fmt.Println()
