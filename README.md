@@ -27,14 +27,15 @@ go run wordle.go
 ## Options
 
 ```
-% wordle -h                                                                                                     <master>
-Usage: wordle [--tries TRIES] [--show] [--blank]
+% wordle -h
+Usage: wordle [--tries TRIES] [--show] [--blank] [--hideanswer]
 
 Options:
   --tries TRIES, -t TRIES
                          number of tries [default: 6]
   --show, -s             show word
   --blank, -b            show try results with no letters
+  --hideanswer, -H       hide answer at end if not guessed
   --help, -h             display this help and exit
 ```
 
