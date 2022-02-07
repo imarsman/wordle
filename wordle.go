@@ -20,7 +20,7 @@ import (
 var words string
 
 var wordleWords = []string{} // slice to hold words
-var triedItems letterSet     // each run has an increasing array of letters tried
+var triedLetters letterSet   // each run has an increasing array of letters tried
 
 var maxGuesses int // max guesses - defaults to 6 and can be set
 
@@ -35,7 +35,7 @@ const (
 )
 
 func init() {
-	triedItems = newEmptyLetterSet()
+	triedLetters = newEmptyLetterSet()
 
 	// read in words from embedded list
 	scanner := bufio.NewScanner(strings.NewReader(words))
@@ -163,6 +163,18 @@ func (ls *letterSet) printLettersWithColour() {
 }
 
 // printWordLetters print letters for word with colour
+func (ls *letterSet) lettersIn(letter rune) int {
+	count := 0
+	for _, v := range *ls.items {
+		if v.letter == letter {
+			count++
+		}
+	}
+
+	return count
+}
+
+// printWordLetters print letters for word with colour
 func (ls *letterSet) printWordLettersBlank() {
 	if len(*ls.items) == 0 {
 		return
@@ -183,10 +195,11 @@ func (ls *letterSet) printWordLettersBlank() {
 
 // args CLI args
 type args struct {
-	Tries      int  `arg:"-t" default:"6" help:"number of tries"`
-	Show       bool `arg:"-s" help:"show word"`
-	Blank      bool `arg:"-b" help:"show try results with no letters"`
-	HideAnswer bool `arg:"-H" help:"hide answer at end if not guessed"`
+	Tries      int    `arg:"-t" default:"6" help:"number of tries"`
+	Show       bool   `arg:"-s" help:"show word"`
+	Blank      bool   `arg:"-b" help:"show try results with no letters"`
+	HideAnswer bool   `arg:"-H" help:"hide answer at end if not guessed"`
+	UseAnswer  string `arg:"-u" help:"use provided answer"`
 }
 
 func main() {
@@ -197,6 +210,16 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
+
+	if callArgs.UseAnswer != "" {
+		if len(callArgs.UseAnswer) != wordLength {
+			fmt.Printf("Your manual word %s is not %d letters long. Exiting", callArgs.UseAnswer, wordLength)
+			os.Exit(1)
+		}
+		selectedWord = callArgs.UseAnswer
+	}
+
+	selectedWord = strings.ToUpper(selectedWord)
 
 	if callArgs.Show {
 		fmt.Println("Selected word", selectedWord)
@@ -251,25 +274,32 @@ tries:
 			if i < len(wordleWords) && wordleWords[i] == guessWord {
 				for j, guessLetter := range guessWord {
 					for k, letter := range selectedWord {
+						// fmt.Println(string(guessLetter))
 						if guessLetter == letter {
 							if j == k {
-								(*guessesLetters.items)[j].colour = greenColourID          // set guess letter green
-								triedItems.addLetterWithColour(guessLetter, greenColourID) // set triedn item green
+								(*guessesLetters.items)[j].colour = greenColourID            // set guess letter green
+								triedLetters.addLetterWithColour(guessLetter, greenColourID) // set to yellow
 								break
 							} else {
-								(*guessesLetters.items)[j].colour = yellowColourID          // set guess letter yellow
-								triedItems.addLetterWithColour(guessLetter, yellowColourID) // set tried item yellow
+								if guessesLetters.lettersIn(guessLetter) > 1 {
+									if triedLetters.lettersIn(guessLetter) == 0 {
+										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+									}
+								} else {
+									(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+								}
+								triedLetters.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
 							}
 						}
 					}
 					// this will have no effect if higher colour already present
-					triedItems.addLetterWithColour(guessLetter, greyColourID)
+					triedLetters.addLetterWithColour(guessLetter, greyColourID)
 				}
 				guessesSet = append(guessesSet, guessesLetters)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
 				guessesLetters.printLettersWithColour()
 				fmt.Print(gchalk.WithBold().Paint(" Tried "))
-				triedItems.printLettersWithColour()
+				triedLetters.printLettersWithColour()
 				fmt.Println()
 			} else {
 				guessCount--
