@@ -196,7 +196,6 @@ func main() {
 	var guessCount int
 	var guessesSet = make([]letterSet, 0, 0)
 
-	// var evaluate = func() {
 tries:
 	for guessCount = 0; guessCount < maxGuesses; guessCount++ {
 		fmt.Printf("Enter your guess (%v/%v): ", guessCount+1, maxGuesses)
@@ -258,10 +257,10 @@ tries:
 					triedItems.addWithColour(guessLetter, greyColourID)
 				}
 				guessesSet = append(guessesSet, guessesLetters)
+				fmt.Print(gchalk.WithBold().Paint("Guess "))
 				guessesLetters.printWordLetters()
-				fmt.Print(" [")
+				fmt.Print(gchalk.WithBold().Paint(" Tried "))
 				triedItems.printWordLetters()
-				fmt.Print("]")
 				fmt.Println()
 			} else {
 				guessCount--
@@ -276,7 +275,4 @@ tries:
 			fmt.Println()
 		}
 	}
-	// }
-
-	// evaluate()
 }
