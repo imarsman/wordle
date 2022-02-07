@@ -200,7 +200,6 @@ tries:
 		guessWord = strings.ToUpper(guessWord[:len(guessWord)-1]) // trim word and uc
 
 		if len(guessWord) != wordLength {
-			// fmt.Println(guessWord)
 			fmt.Printf("The word you entered was %d letters. You need a word with %d letters\n", len(guessWord), wordLength)
 			guessCount--
 			continue tries
