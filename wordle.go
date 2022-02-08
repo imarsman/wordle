@@ -231,6 +231,7 @@ func main() {
 
 	var guessCount int
 	var guessesSet = make([]letterSet, 0, 0)
+	var score = 0
 
 tries:
 	for guessCount = 0; guessCount < maxGuesses; guessCount++ {
@@ -272,6 +273,16 @@ tries:
 					fmt.Println()
 				}
 			}
+			triedNotThere := 0
+			for _, v := range *triedLetters.items {
+				if v.colour == greyColourID {
+					triedNotThere++
+				}
+			}
+			// calculate score
+			score = len(guessesSet) + len(*triedLetters.items)
+			fmt.Println()
+			fmt.Printf("Your score is %d, %d guesses and %d incorrect letters tried\n", score, len(guessesSet), triedNotThere)
 			break
 		} else {
 			i := sort.SearchStrings(wordleWords, guessWord)
