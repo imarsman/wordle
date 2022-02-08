@@ -162,7 +162,7 @@ func (ls *letterSet) printLettersWithColour() {
 	}
 }
 
-// printWordLetters print letters for word with colour
+// lettersIn count instances of a letter in list
 func (ls *letterSet) lettersIn(letter rune) int {
 	count := 0
 	for _, v := range *ls.items {
@@ -209,21 +209,23 @@ func main() {
 
 	rand.Seed(time.Now().Unix())
 
-	selectedWord := wordleWords[rand.Intn(len(wordleWords))]
+	wordToGuess := wordleWords[rand.Intn(len(wordleWords))]
 
 	if callArgs.UseAnswer != "" {
 		if len(callArgs.UseAnswer) != wordLength {
 			fmt.Printf("Your manual word %s is not %d letters long. Exiting", callArgs.UseAnswer, wordLength)
 			os.Exit(1)
 		}
-		selectedWord = callArgs.UseAnswer
+		wordToGuess = callArgs.UseAnswer
 	}
 
-	selectedWord = strings.ToUpper(selectedWord)
+	wordToGuess = strings.ToUpper(wordToGuess)
 
 	if callArgs.Show {
-		fmt.Println("Selected word", selectedWord)
+		fmt.Println("Selected word", wordToGuess)
 	}
+	wordToGuessLetters := newFilledLetterSet(wordToGuess)
+	letterFoundCount := make(map[rune]int)
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -246,14 +248,14 @@ tries:
 			continue tries
 		}
 
-		guessesLetters := newSizedLetterSet(wordLength)
+		guessesLetters := newSizedLetterSet(wordLength) // make sized slice
 		// fill in letters for items then later fill in colour as needed
 		for i, v := range guessWord {
 			(*guessesLetters.items)[i].letter = v
 			(*guessesLetters.items)[i].colour = greyColourID
 		}
 
-		if guessWord == selectedWord {
+		if guessWord == wordToGuess {
 			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
 
 			guessesLetters.setAllLettersColour(greenColourID)
@@ -273,19 +275,40 @@ tries:
 			i := sort.SearchStrings(wordleWords, guessWord)
 			if i < len(wordleWords) && wordleWords[i] == guessWord {
 				for j, guessLetter := range guessWord {
-					for k, letter := range selectedWord {
-						// fmt.Println(string(guessLetter))
+					for k, letter := range wordToGuess {
 						if guessLetter == letter {
+							foundSoFar, ok := letterFoundCount[guessLetter] // check value/existence
+
+							guessedCount := guessesLetters.lettersIn(guessLetter)         // how many in guess
+							wordToGuessCount := wordToGuessLetters.lettersIn(guessLetter) // how many in selected word
 							if j == k {
 								(*guessesLetters.items)[j].colour = greenColourID            // set guess letter green
-								triedLetters.addLetterWithColour(guessLetter, greenColourID) // set to yellow
+								triedLetters.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
+								if !ok {
+									letterFoundCount[guessLetter] = 1 // set to 1 if this is a new letter
+								} else {
+									letterFoundCount[guessLetter]++ // increment if already found
+								}
 								break
 							} else {
+								// If > 1 instance of a letter in current guess
 								if guessesLetters.lettersIn(guessLetter) > 1 {
+									// answerCount := selectedLetters.lettersIn(guessLetter)
+									if !ok { // if not found set colour
+										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+										letterFoundCount[guessLetter] = 1
+									} else {
+										if guessedCount < foundSoFar && guessedCount >= wordToGuessCount {
+											(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+											letterFoundCount[guessLetter]++
+										}
+									}
+									// If no instances of tried letter, make it yellow
 									if triedLetters.lettersIn(guessLetter) == 0 {
 										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
 									}
 								} else {
+									// If just 1 instance of letter, make it yellow
 									(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
 								}
 								triedLetters.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
@@ -309,7 +332,7 @@ tries:
 		// If we've run out of words, end and print out the correct word
 		if guessCount+1 == maxGuesses && !callArgs.HideAnswer {
 			fmt.Println(gchalk.WithBold().Paint("\nBetter luck next time!"))
-			answer := newFilledLetterSet(selectedWord)
+			answer := newFilledLetterSet(wordToGuess)
 			answer.setAllLettersColour(greenColourID)
 			fmt.Print("The correct word is : ")
 			answer.printLettersWithColour()
