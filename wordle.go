@@ -153,11 +153,11 @@ func (ls *letterSet) printLettersWithColour() {
 		str := " " + string(l.letter) + " "
 		switch l.colour {
 		case greenColourID:
-			fmt.Print(gchalk.BgGreen(str))
+			fmt.Print(gchalk.WithBold().BgGreen(str))
 		case yellowColourID:
-			fmt.Print(gchalk.BgYellow(str))
+			fmt.Print(gchalk.WithBold().BgYellow(str))
 		case greyColourID:
-			fmt.Print(gchalk.BgGrey(str))
+			fmt.Print(gchalk.WithBold().BgGrey(str))
 		}
 	}
 }
@@ -249,6 +249,7 @@ tries:
 		}
 
 		guessesLetters := newSizedLetterSet(wordLength) // make sized slice
+
 		// fill in letters for items then later fill in colour as needed
 		for i, v := range guessWord {
 			(*guessesLetters.items)[i].letter = v
@@ -260,6 +261,7 @@ tries:
 
 			guessesLetters.setAllLettersColour(greenColourID)
 			guessesSet = append(guessesSet, guessesLetters)
+
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guessesSet {
 				if callArgs.Blank {
@@ -281,6 +283,7 @@ tries:
 
 							guessedCount := guessesLetters.lettersIn(guessLetter)         // how many in guess
 							wordToGuessCount := wordToGuessLetters.lettersIn(guessLetter) // how many in selected word
+
 							if j == k {
 								(*guessesLetters.items)[j].colour = greenColourID            // set guess letter green
 								triedLetters.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
@@ -293,12 +296,18 @@ tries:
 							} else {
 								// If > 1 instance of a letter in current guess
 								if guessesLetters.lettersIn(guessLetter) > 1 {
-									// answerCount := selectedLetters.lettersIn(guessLetter)
+									// Letter not encountered yet
 									if !ok { // if not found set colour
-										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+										// if count in guessed word < count in hidden word
+										if wordToGuessCount > 0 {
+											(*guessesLetters.items)[j].colour = yellowColourID
+										}
+										// increment no matter what
 										letterFoundCount[guessLetter] = 1
 									} else {
-										if guessedCount < foundSoFar && guessedCount >= wordToGuessCount {
+										// If there is room and if guess word has fewer than or equal to letter in
+										// hidden word
+										if guessedCount < foundSoFar && guessedCount <= wordToGuessCount {
 											(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
 											letterFoundCount[guessLetter]++
 										}
