@@ -20,7 +20,7 @@ import (
 var words string
 
 var wordleWords = []string{} // slice to hold words
-var triedLetters letterSet   // each run has an increasing array of letters tried
+var triedLetterSet letterSet // each run has an increasing array of letters tried
 
 var maxGuesses int // max guesses - defaults to 6 and can be set
 
@@ -35,7 +35,7 @@ const (
 )
 
 func init() {
-	triedLetters = newEmptyLetterSet()
+	triedLetterSet = newEmptyLetterSet()
 
 	// read in words from embedded list
 	scanner := bufio.NewScanner(strings.NewReader(words))
@@ -232,7 +232,7 @@ func main() {
 	if callArgs.Show {
 		fmt.Println("Selected word", wordToGuess)
 	}
-	wordToGuessLetters := newFilledLetterSet(wordToGuess)
+	wordToGuessLetterSet := newFilledLetterSet(wordToGuess)
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -256,19 +256,19 @@ tries:
 			continue tries
 		}
 
-		guessesLetters := newSizedLetterSet(wordLength) // make sized slice
+		guessesLetterSet := newSizedLetterSet(wordLength) // make sized slice
 
 		// fill in letters for items then later fill in colour as needed
 		for i, v := range guessWord {
-			(*guessesLetters.items)[i].letter = v
-			(*guessesLetters.items)[i].colour = greyColourID
+			(*guessesLetterSet.items)[i].letter = v
+			(*guessesLetterSet.items)[i].colour = greyColourID
 		}
 
 		if guessWord == wordToGuess {
 			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
 
-			guessesLetters.setAllLettersColour(greenColourID)
-			guessesSet = append(guessesSet, guessesLetters)
+			guessesLetterSet.setAllLettersColour(greenColourID)
+			guessesSet = append(guessesSet, guessesLetterSet)
 
 			fmt.Println("Your wordle matrix is: ")
 			for _, guess := range guessesSet {
@@ -281,13 +281,13 @@ tries:
 				}
 			}
 			triedNotThere := 0
-			for _, v := range *triedLetters.items {
+			for _, v := range *triedLetterSet.items {
 				if v.colour == greyColourID {
 					triedNotThere++
 				}
 			}
 			// calculate score
-			score = len(guessesSet) + len(*triedLetters.items)
+			score = len(guessesSet) + len(*triedLetterSet.items)
 			fmt.Println()
 			fmt.Printf("Your score is %d, %d guesses and %d incorrect letters tried\n", score, len(guessesSet), triedNotThere)
 			break
@@ -302,22 +302,25 @@ tries:
 						if guessLetter == letter {
 							_, ok := letterFoundCount[guessLetter] // check value/existence
 
-							guessLetterCount := guessesLetters.lettersIn(guessLetter)           // how many in guess
-							wordToGuessLetterCount := wordToGuessLetters.lettersIn(guessLetter) // how many in selected word
+							guessLetterCount := guessesLetterSet.lettersIn(guessLetter)           // how many in guess
+							wordToGuessLetterCount := wordToGuessLetterSet.lettersIn(guessLetter) // how many in selected word
 
 							if j == k {
-								(*guessesLetters.items)[j].colour = greenColourID
+								// Set green right away
+								(*guessesLetterSet.items)[j].colour = greenColourID
 
-								triedLetters.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
+								// Add to the tried letters set
+								triedLetterSet.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
 								if !ok {
 									letterFoundCount[guessLetter] = 1 // set to 1 if this is a new letter
 								} else {
 									letterFoundCount[guessLetter]++ // increment if already found
 								}
 								// Current letter is green. If there are more of the letter in the guess than
-								// in the target word, run through and clear out any non-greens to grey
+								// in the target word, run through backwards and clear out any non-greens to grey.
+								// There is probably an edge case where this doesn't work proprly.
 								if guessLetterCount > wordToGuessLetterCount {
-									guessesLetters.clearBackward(guessLetter, j)
+									guessesLetterSet.clearBackward(guessLetter, j)
 								}
 
 								break
@@ -328,7 +331,7 @@ tries:
 									if !ok {
 										if guessLetterCount < wordToGuessLetterCount {
 											// set guess letter yellow
-											(*guessesLetters.items)[j].colour = yellowColourID
+											(*guessesLetterSet.items)[j].colour = yellowColourID
 										}
 										// increment found letter count
 										letterFoundCount[guessLetter] = 1
@@ -337,35 +340,35 @@ tries:
 										if letterFoundCount[guessLetter] < wordToGuessLetterCount {
 											// if guessLetterCount-foundForLetterSoFar == wordToGuessLetterCount {
 											// set guess letter yellow
-											(*guessesLetters.items)[j].colour = yellowColourID
+											(*guessesLetterSet.items)[j].colour = yellowColourID
 										}
 										letterFoundCount[guessLetter]++
 									}
 									// If no instances of tried letter, make it yellow
 									if guessLetterCount-letterFoundCount[guessLetter] >= wordToGuessLetterCount {
-										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+										(*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
 
 										letterFoundCount[guessLetter]++
 									}
 								} else {
 									// If just 1 instance of letter, make it yellow
-									(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+									(*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
 
 									// increment found letter count
 									letterFoundCount[guessLetter]++
 								}
-								triedLetters.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
+								triedLetterSet.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
 							}
 						}
 					}
 					// this will have no effect if higher colour already present
-					triedLetters.addLetterWithColour(guessLetter, greyColourID)
+					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
-				guessesSet = append(guessesSet, guessesLetters)
+				guessesSet = append(guessesSet, guessesLetterSet)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
-				guessesLetters.printLettersWithColour()
+				guessesLetterSet.printLettersWithColour()
 				fmt.Print(gchalk.WithBold().Paint(" Tried "))
-				triedLetters.printLettersWithColour()
+				triedLetterSet.printLettersWithColour()
 				fmt.Println()
 			} else {
 				guessCount--
