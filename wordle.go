@@ -306,13 +306,16 @@ tries:
 							wordToGuessLetterCount := wordToGuessLetters.lettersIn(guessLetter) // how many in selected word
 
 							if j == k {
-								(*guessesLetters.items)[j].colour = greenColourID            // set guess letter green
+								(*guessesLetters.items)[j].colour = greenColourID
+
 								triedLetters.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
 								if !ok {
 									letterFoundCount[guessLetter] = 1 // set to 1 if this is a new letter
 								} else {
 									letterFoundCount[guessLetter]++ // increment if already found
 								}
+								// Current letter is green. If there are more of the letter in the guess than
+								// in the target word, run through and clear out any non-greens to grey
 								if guessLetterCount > wordToGuessLetterCount {
 									guessesLetters.clearBackward(guessLetter, j)
 								}
