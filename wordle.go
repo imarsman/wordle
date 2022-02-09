@@ -306,25 +306,23 @@ tries:
 								break
 							} else {
 								// If > 1 instance of a letter in current guess
-								if guessesLetters.lettersIn(guessLetter) > 1 {
+								if guessedCount > 1 {
 									// Letter not encountered yet
-									if !ok { // if not found set colour
-										// if count in guessed word < count in hidden word
-										if wordToGuessCount > 0 {
+									if !ok {
+										if guessedCount < wordToGuessCount {
 											(*guessesLetters.items)[j].colour = yellowColourID
 										}
 										// increment no matter what
 										letterFoundCount[guessLetter] = 1
 									} else {
-										// If there is room and if guess word has fewer than or equal to letter in
-										// hidden word
-										if guessedCount < foundSoFar && guessedCount <= wordToGuessCount {
+										// If the number remaining == the number in the secret word, colour yellow
+										if guessedCount-foundSoFar == wordToGuessCount {
 											(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
 											letterFoundCount[guessLetter]++
 										}
 									}
 									// If no instances of tried letter, make it yellow
-									if triedLetters.lettersIn(guessLetter) == 0 {
+									if guessedCount-foundSoFar <= wordToGuessCount {
 										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
 									}
 								} else {
