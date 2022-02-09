@@ -225,7 +225,6 @@ func main() {
 		fmt.Println("Selected word", wordToGuess)
 	}
 	wordToGuessLetters := newFilledLetterSet(wordToGuess)
-	letterFoundCount := make(map[rune]int)
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -287,13 +286,16 @@ tries:
 		} else {
 			i := sort.SearchStrings(wordleWords, guessWord)
 			if i < len(wordleWords) && wordleWords[i] == guessWord {
+
+				letterFoundCount := make(map[rune]int)
+
 				for j, guessLetter := range guessWord {
 					for k, letter := range wordToGuess {
 						if guessLetter == letter {
-							foundSoFar, ok := letterFoundCount[guessLetter] // check value/existence
+							_, ok := letterFoundCount[guessLetter] // check value/existence
 
-							guessedCount := guessesLetters.lettersIn(guessLetter)         // how many in guess
-							wordToGuessCount := wordToGuessLetters.lettersIn(guessLetter) // how many in selected word
+							guessLetterCount := guessesLetters.lettersIn(guessLetter)           // how many in guess
+							wordToGuessLetterCount := wordToGuessLetters.lettersIn(guessLetter) // how many in selected word
 
 							if j == k {
 								(*guessesLetters.items)[j].colour = greenColourID            // set guess letter green
@@ -306,28 +308,39 @@ tries:
 								break
 							} else {
 								// If > 1 instance of a letter in current guess
-								if guessedCount > 1 {
+								if guessLetterCount > 1 {
 									// Letter not encountered yet
 									if !ok {
-										if guessedCount < wordToGuessCount {
+										if guessLetterCount < wordToGuessLetterCount {
+											// set guess letter yellow
 											(*guessesLetters.items)[j].colour = yellowColourID
 										}
-										// increment no matter what
+										// increment found letter count
 										letterFoundCount[guessLetter] = 1
 									} else {
 										// If the number remaining == the number in the secret word, colour yellow
-										if guessedCount-foundSoFar == wordToGuessCount {
-											(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
-											letterFoundCount[guessLetter]++
+										if letterFoundCount[guessLetter] < wordToGuessLetterCount {
+											// if guessLetterCount-foundForLetterSoFar == wordToGuessLetterCount {
+											// set guess letter yellow
+											(*guessesLetters.items)[j].colour = yellowColourID
 										}
+										letterFoundCount[guessLetter]++
 									}
 									// If no instances of tried letter, make it yellow
-									if guessedCount-foundSoFar <= wordToGuessCount {
+									if guessLetterCount-letterFoundCount[guessLetter] >= wordToGuessLetterCount {
 										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+
+										// increment found letter count
+										// fmt.Println("here pre", string(guessLetter), wordToGuessLetterCount, letterFoundCount[guessLetter])
+										letterFoundCount[guessLetter]++
+										// fmt.Println("here", string(guessLetter), wordToGuessLetterCount, letterFoundCount[guessLetter])
 									}
 								} else {
 									// If just 1 instance of letter, make it yellow
 									(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
+
+									// increment found letter count
+									letterFoundCount[guessLetter]++
 								}
 								triedLetters.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
 							}
