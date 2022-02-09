@@ -174,6 +174,14 @@ func (ls *letterSet) lettersIn(letter rune) int {
 	return count
 }
 
+func (ls *letterSet) clearBackward(letter rune, position int) {
+	for i := position; i > 0; i-- {
+		if (*ls.items)[i].letter == letter && (*ls.items)[i].colour != greenColourID {
+			(*ls.items)[i].colour = greyColourID
+		}
+	}
+}
+
 // printWordLetters print letters for word with colour
 func (ls *letterSet) printWordLettersBlank() {
 	if len(*ls.items) == 0 {
@@ -305,6 +313,10 @@ tries:
 								} else {
 									letterFoundCount[guessLetter]++ // increment if already found
 								}
+								if guessLetterCount > wordToGuessLetterCount {
+									guessesLetters.clearBackward(guessLetter, j)
+								}
+
 								break
 							} else {
 								// If > 1 instance of a letter in current guess
@@ -330,10 +342,7 @@ tries:
 									if guessLetterCount-letterFoundCount[guessLetter] >= wordToGuessLetterCount {
 										(*guessesLetters.items)[j].colour = yellowColourID // set guess letter yellow
 
-										// increment found letter count
-										// fmt.Println("here pre", string(guessLetter), wordToGuessLetterCount, letterFoundCount[guessLetter])
 										letterFoundCount[guessLetter]++
-										// fmt.Println("here", string(guessLetter), wordToGuessLetterCount, letterFoundCount[guessLetter])
 									}
 								} else {
 									// If just 1 instance of letter, make it yellow
