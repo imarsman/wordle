@@ -174,6 +174,8 @@ func (ls *letterSet) lettersIn(letter rune) int {
 	return count
 }
 
+// clearBackwards clear backwards to grey for any earlier instances of letter starting
+// at position.
 func (ls *letterSet) clearBackward(letter rune, position int) {
 	for i := position; i > 0; i-- {
 		if (*ls.items)[i].letter == letter && (*ls.items)[i].colour != greenColourID {
