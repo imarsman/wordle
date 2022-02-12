@@ -310,28 +310,16 @@ tries:
 				for j, guessLetter := range guessWord {
 					for k, letter := range wordToGuess {
 						if guessLetter == letter {
-							// guessLetterCount := guessesLetterSet.lettersIn(guessLetter)           // how many in guess
-							// wordToGuessLetterCount := wordToGuessLetterSet.lettersIn(guessLetter) // how many in selected word
-
 							if j == k {
-								// Set green right away
 								(*guessesLetterSet.items)[j].colour = greenColourID
 
 								// Add to the tried letters set
-								triedLetterSet.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
+								triedLetterSet.addLetterWithColour(guessLetter, greenColourID) // set green
 
 								break
 							} else {
-								// if guessLetterCount > 1 {
-								// 	if guessLetterCount < wordToGuessLetterCount {
-								// 		(*guessesLetterSet.items)[j].colour = yellowColourID
-								// 	}
-								(*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
-
-								// } else {
-								// (*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
-								// }
-								triedLetterSet.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
+								(*guessesLetterSet.items)[j].colour = yellowColourID            // set yellow
+								triedLetterSet.addLetterWithColour(guessLetter, yellowColourID) // set yellow
 							}
 						}
 					}
