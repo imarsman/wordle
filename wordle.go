@@ -368,17 +368,18 @@ tries:
 				}
 
 				// Iterate backwards and decide whether to clear out previous non-green for the same letter
+				// This is probably not the final word on colour setting
 				for l := len(guessWord) - 1; l >= 0; l-- {
-					letter := (*guessesLetterSet.items)[l].letter
-					colour := (*guessesLetterSet.items)[l].colour
-					if colour == greenColourID {
-						countGuessedWord := guessesLetterSet.lettersIn(letter)
-						countWordToGuess := wordToGuessLetterSet.lettersIn(letter)
+					currentLetter := (*guessesLetterSet.items)[l].letter
+					currentColour := (*guessesLetterSet.items)[l].colour
+					if currentColour == greenColourID {
+						countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
+						countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
 						if countGuessedWord > countWordToGuess {
 							// guessesLetterSet.printLettersWithColour()
 							// fmt.Println()
-							goTo := countGuessedWord - countWordToGuess - 1
-							guessesLetterSet.clearBackward(letter, l, goTo)
+							clearCount := countGuessedWord - countWordToGuess - 1
+							guessesLetterSet.clearBackward(currentLetter, l, clearCount)
 							// guessesLetterSet.printLettersWithColour()
 							// fmt.Println()
 						}
