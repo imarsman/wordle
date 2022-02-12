@@ -183,7 +183,8 @@ func (ls *letterSet) clearBackward(letter rune, startPosition int, maxToClear in
 		currentColour := (*ls.items)[i].colour
 		// If non-grey and not at start position
 		// if currentLetter == letter && currentColour < greenColourID && i < startPosition {
-		if currentLetter == letter && currentColour < greenColourID {
+		// 	if the target letter and letter is currently yellow
+		if currentLetter == letter && currentColour == yellowColourID {
 			if countCleared <= maxToClear {
 				(*ls.items)[i].colour = greyColourID
 			}
