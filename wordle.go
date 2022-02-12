@@ -180,7 +180,9 @@ func (ls *letterSet) clearBackward(letter rune, position int, maxToClear int) {
 	countCleared := 0
 	for i := position; i >= 0; i-- {
 		// fmt.Println(string((*ls.items)[i].letter), (*ls.items)[i].colour)
-		if (*ls.items)[i].letter == letter && (*ls.items)[i].colour != greenColourID {
+		currentLetter := (*ls.items)[i].letter
+		currentColour := (*ls.items)[i].colour
+		if currentLetter == letter && currentColour > greyColourID && i < position {
 			if countCleared <= maxToClear {
 				(*ls.items)[i].colour = greyColourID
 			}
@@ -367,12 +369,22 @@ tries:
 					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
 
+				/*
+					- both m's are yellow here
+					% wordle -s
+					Selected word SMITH
+					Enter your guess (1/6): might
+					Guess  M  I  G  H  T  Tried  G  H  I  M  T
+					Enter your guess (2/6): mimes
+					Guess  M  I  M  E  S  Tried  E  G  H  I  M  S  T
+				*/
+
 				// Iterate backwards and decide whether to clear out previous non-green for the same letter
 				// This is probably not the final word on colour setting
 				for l := len(guessWord) - 1; l >= 0; l-- {
 					currentLetter := (*guessesLetterSet.items)[l].letter
 					currentColour := (*guessesLetterSet.items)[l].colour
-					if currentColour == greenColourID {
+					if currentColour == greenColourID || currentColour == yellowColourID {
 						countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
 						countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
 						if countGuessedWord > countWordToGuess {
