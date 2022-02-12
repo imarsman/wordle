@@ -176,13 +176,13 @@ func (ls *letterSet) lettersIn(letter rune) int {
 
 // clearBackwards clear backwards to grey for any earlier instances of letter starting
 // at position.
-func (ls *letterSet) clearBackward(letter rune, position int, maxToClear int) {
+func (ls *letterSet) clearBackward(letter rune, startPosition int, maxToClear int) {
 	countCleared := 0
-	for i := position; i >= 0; i-- {
-		// fmt.Println(string((*ls.items)[i].letter), (*ls.items)[i].colour)
+	for i := startPosition; i >= 0; i-- {
 		currentLetter := (*ls.items)[i].letter
 		currentColour := (*ls.items)[i].colour
-		if currentLetter == letter && currentColour > greyColourID && i < position {
+		// If non-grey and not at start position
+		if currentLetter == letter && currentColour > greyColourID && i < startPosition {
 			if countCleared <= maxToClear {
 				(*ls.items)[i].colour = greyColourID
 			}
