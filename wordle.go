@@ -176,20 +176,19 @@ func (ls *letterSet) lettersIn(letter rune) int {
 
 // clearBackwards clear backwards to grey for any earlier instances of letter starting
 // at position.
-func (ls *letterSet) clearBackward(letter rune, startPosition int, maxToClear int) {
+func (ls *letterSet) clearBackward(targetLetter rune, startPosition int, maxToClear int) {
 	countCleared := 0
 	for i := startPosition; i >= 0; i-- {
 		currentLetter := (*ls.items)[i].letter
 		currentColour := (*ls.items)[i].colour
-		// If non-grey and not at start position
-		// if currentLetter == letter && currentColour < greenColourID && i < startPosition {
 		// 	if the target letter and letter is currently yellow
-		if currentLetter == letter && currentColour == yellowColourID {
+		if currentLetter == targetLetter && currentColour == yellowColourID {
 			if countCleared <= maxToClear {
 				(*ls.items)[i].colour = greyColourID
 			}
 		}
-		if currentLetter == letter {
+		// If we in any way are on the target letter, count it as encountered
+		if currentLetter == targetLetter {
 			countCleared++
 		}
 	}
@@ -308,15 +307,11 @@ tries:
 			i := sort.SearchStrings(wordleWords, guessWord)
 			if i < len(wordleWords) && wordleWords[i] == guessWord {
 
-				// letterFoundCount := make(map[rune]int)
-
 				for j, guessLetter := range guessWord {
 					for k, letter := range wordToGuess {
 						if guessLetter == letter {
-							// _, ok := letterFoundCount[guessLetter] // check value/existence
-
-							guessLetterCount := guessesLetterSet.lettersIn(guessLetter)           // how many in guess
-							wordToGuessLetterCount := wordToGuessLetterSet.lettersIn(guessLetter) // how many in selected word
+							// guessLetterCount := guessesLetterSet.lettersIn(guessLetter)           // how many in guess
+							// wordToGuessLetterCount := wordToGuessLetterSet.lettersIn(guessLetter) // how many in selected word
 
 							if j == k {
 								// Set green right away
@@ -324,46 +319,18 @@ tries:
 
 								// Add to the tried letters set
 								triedLetterSet.addLetterWithColour(guessLetter, greenColourID) // try add to tried letters
-								// if !ok {
-								// 	letterFoundCount[guessLetter] = 1 // set to 1 if this is a new letter
-								// } else {
-								// 	letterFoundCount[guessLetter]++ // increment if already found
-								// }
 
 								break
 							} else {
-								// If > 1 instance of a letter in current guess
-								if guessLetterCount > 1 {
-									// Letter not encountered yet
-									// if !ok {
-									if guessLetterCount < wordToGuessLetterCount {
-										// set guess letter yellow
-										(*guessesLetterSet.items)[j].colour = yellowColourID
-									}
-									// 	// increment found letter count
-									// 	letterFoundCount[guessLetter] = 1
-									// } else {
-									// 	// If the number remaining == the number in the secret word, colour yellow
-									// 	if letterFoundCount[guessLetter] < wordToGuessLetterCount {
-									// 		// if guessLetterCount-foundForLetterSoFar == wordToGuessLetterCount {
-									// 		// set guess letter yellow
-									// 		(*guessesLetterSet.items)[j].colour = yellowColourID
-									// 	}
-									// 	letterFoundCount[guessLetter]++
-									// }
-									// If no instances of tried letter, make it yellow
-									// if guessLetterCount-letterFoundCount[guessLetter] >= wordToGuessLetterCount {
-									(*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
+								// if guessLetterCount > 1 {
+								// 	if guessLetterCount < wordToGuessLetterCount {
+								// 		(*guessesLetterSet.items)[j].colour = yellowColourID
+								// 	}
+								(*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
 
-									// 	letterFoundCount[guessLetter]++
-									// }
-								} else {
-									// If just 1 instance of letter, make it yellow
-									(*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
-
-									// increment found letter count
-									// letterFoundCount[guessLetter]++
-								}
+								// } else {
+								// (*guessesLetterSet.items)[j].colour = yellowColourID // set guess letter yellow
+								// }
 								triedLetterSet.addLetterWithColour(guessLetter, yellowColourID) // set to yellow
 							}
 						}
@@ -372,16 +339,6 @@ tries:
 					// this will have no effect if higher colour already present
 					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
-
-				/*
-					- both m's are yellow here
-					% wordle -s
-					Selected word SMITH
-					Enter your guess (1/6): might
-					Guess  M  I  G  H  T  Tried  G  H  I  M  T
-					Enter your guess (2/6): mimes
-					Guess  M  I  M  E  S  Tried  E  G  H  I  M  S  T
-				*/
 
 				// Iterate backwards and decide whether to clear out previous non-green for the same letter
 				// This is probably not the final word on colour setting
