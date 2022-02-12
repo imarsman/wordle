@@ -176,10 +176,15 @@ func (ls *letterSet) lettersIn(letter rune) int {
 
 // clearBackwards clear backwards to grey for any earlier instances of letter starting
 // at position.
-func (ls *letterSet) clearBackward(letter rune, position int) {
-	for i := position; i > 0; i-- {
+func (ls *letterSet) clearBackward(letter rune, position int, maxToClear int) {
+	countCleared := 0
+	for i := position; i >= 0; i-- {
+		// fmt.Println(string((*ls.items)[i].letter), (*ls.items)[i].colour)
 		if (*ls.items)[i].letter == letter && (*ls.items)[i].colour != greenColourID {
-			(*ls.items)[i].colour = greyColourID
+			if countCleared <= maxToClear {
+				(*ls.items)[i].colour = greyColourID
+			}
+			countCleared++
 		}
 	}
 }
@@ -321,9 +326,10 @@ tries:
 								// Current letter is green. If there are more of the letter in the guess than
 								// in the target word, run through backwards and clear out any non-greens to grey.
 								// There is probably an edge case where this doesn't work proprly.
-								if guessLetterCount > wordToGuessLetterCount {
-									guessesLetterSet.clearBackward(guessLetter, j)
-								}
+								// if guessLetterCount > wordToGuessLetterCount {
+								// 	goTo := guessLetterCount - wordToGuessLetterCount - 1
+								// 	guessesLetterSet.clearBackward(guessLetter, j, goTo)
+								// }
 
 								break
 							} else {
@@ -363,9 +369,29 @@ tries:
 							}
 						}
 					}
+
 					// this will have no effect if higher colour already present
 					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
+
+				for l := len(guessWord) - 1; l >= 0; l-- {
+					letter := (*guessesLetterSet.items)[l].letter
+					colour := (*guessesLetterSet.items)[l].colour
+					// fmt.Println(letter, colour)
+					if colour == greenColourID {
+						countGuess := guessesLetterSet.lettersIn(letter)
+						countWordToGuess := wordToGuessLetterSet.lettersIn(letter)
+						if countGuess > countWordToGuess {
+							// guessesLetterSet.printLettersWithColour()
+							// fmt.Println()
+							goTo := countGuess - countWordToGuess - 1
+							guessesLetterSet.clearBackward(letter, l, goTo)
+							// guessesLetterSet.printLettersWithColour()
+							// fmt.Println()
+						}
+					}
+				}
+
 				guessesSet = append(guessesSet, guessesLetterSet)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
 				guessesLetterSet.printLettersWithColour()
