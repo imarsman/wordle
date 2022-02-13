@@ -351,6 +351,7 @@ tries:
 						count, _ := counts[currentLetter]
 						// Initialize count if not initialized
 						if count == 0 {
+							// Go allows both initialization and increment for empty entry
 							counts[currentLetter]++
 						}
 
