@@ -285,7 +285,6 @@ tries:
 			(*guessesLetterSet.items)[i].letter = v
 			(*guessesLetterSet.items)[i].colour = greyColourID
 		}
-		looped := false
 
 		if guessWord == wordToGuess {
 			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
@@ -340,34 +339,27 @@ tries:
 				}
 
 				counts := make(map[rune]int)
-				if !looped {
-					// Iterate backwards and decide whether to clear out previous non-green for the same letter
-					// This is probably not the final word on colour setting
-					for l := len(guessWord) - 1; l >= 0; l-- {
-						currentLetter := (*guessesLetterSet.items)[l].letter
-						currentColour := (*guessesLetterSet.items)[l].colour
-						if currentColour == yellowColourID {
-							countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
-							countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
-							count, _ := counts[currentLetter]
-							// contains := triedLetterSet.contains(currentLetter)
-							if count == 0 {
-								counts[currentLetter] = 1
-								count = 0
-							}
+				// Iterate backwards and decide whether to clear out previous non-green for the same letter
+				for l := len(guessWord) - 1; l >= 0; l-- {
+					currentLetter := (*guessesLetterSet.items)[l].letter
+					currentColour := (*guessesLetterSet.items)[l].colour
+					if currentColour == yellowColourID {
+						countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
+						countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
+						count, _ := counts[currentLetter]
+						if count == 0 {
+							counts[currentLetter] = 1
+							count = 0
+						}
 
-							if (countGuessedWord - count) > countWordToGuess {
-								counts[currentLetter] = counts[currentLetter] + 1
-								// (*guessesLetterSet.items)[l].colour = greyColourID
-							} else {
-								counts[currentLetter] = counts[currentLetter] + 1
-								// guessesLetterSet.printLettersWithColour()
-								clearCount := countGuessedWord - countWordToGuess - 1
-								guessesLetterSet.clearBackward(currentLetter, l, clearCount)
-							}
+						if (countGuessedWord - count) > countWordToGuess {
+							counts[currentLetter] = counts[currentLetter] + 1
+						} else {
+							counts[currentLetter] = counts[currentLetter] + 1
+							clearCount := countGuessedWord - countWordToGuess - 1
+							guessesLetterSet.clearBackward(currentLetter, l, clearCount)
 						}
 					}
-					looped = true
 				}
 				guessesSet = append(guessesSet, guessesLetterSet)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
