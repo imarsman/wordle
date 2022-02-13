@@ -347,11 +347,14 @@ tries:
 						countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
 						countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
 						count, _ := counts[currentLetter]
+						// Initialize if not
 						if count == 0 {
 							counts[currentLetter] = 1
 							count = 0
 						}
 
+						// If we have more of the letter in the guessed word than the word to guess
+						// take count found so far into account
 						if (countGuessedWord - count) > countWordToGuess {
 							counts[currentLetter] = counts[currentLetter] + 1
 						} else {
