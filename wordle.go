@@ -195,6 +195,17 @@ func (ls *letterSet) clearBackward(targetLetter rune, startPosition int, maxToCl
 }
 
 // printWordLetters print letters for word with colour
+func (ls *letterSet) contains(letter rune) (found bool) {
+	for _, v := range *(*ls).items {
+		if v.letter == letter {
+			found = true
+			return
+		}
+	}
+	return
+}
+
+// printWordLetters print letters for word with colour
 func (ls *letterSet) printWordLettersBlank() {
 	if len(*ls.items) == 0 {
 		return
@@ -275,6 +286,7 @@ tries:
 			(*guessesLetterSet.items)[i].letter = v
 			(*guessesLetterSet.items)[i].colour = greyColourID
 		}
+		looped := false
 
 		if guessWord == wordToGuess {
 			fmt.Println(gchalk.WithRed().Bold("\nYou guessed right!"))
@@ -328,25 +340,42 @@ tries:
 					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
 
-				// Iterate backwards and decide whether to clear out previous non-green for the same letter
-				// This is probably not the final word on colour setting
-				for l := len(guessWord) - 1; l >= 0; l-- {
-					currentLetter := (*guessesLetterSet.items)[l].letter
-					currentColour := (*guessesLetterSet.items)[l].colour
-					if currentColour == greenColourID || currentColour == yellowColourID {
-						countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
-						countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
-						if countGuessedWord > countWordToGuess {
-							// guessesLetterSet.printLettersWithColour()
-							// fmt.Println()
-							clearCount := countGuessedWord - countWordToGuess - 1
-							guessesLetterSet.clearBackward(currentLetter, l, clearCount)
-							// guessesLetterSet.printLettersWithColour()
-							// fmt.Println()
+				counts := make(map[rune]int)
+				if !looped {
+					// Iterate backwards and decide whether to clear out previous non-green for the same letter
+					// This is probably not the final word on colour setting
+					for l := len(guessWord) - 1; l >= 0; l-- {
+						currentLetter := (*guessesLetterSet.items)[l].letter
+						currentColour := (*guessesLetterSet.items)[l].colour
+						if currentColour == yellowColourID {
+							countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
+							countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
+							count, _ := counts[currentLetter]
+							// contains := triedLetterSet.contains(currentLetter)
+							if count == 0 {
+								counts[currentLetter] = 1
+								count = 0
+							}
+							// fmt.Println(string(currentLetter), contains, countWordToGuess, countGuessedWord, count)
+
+							if (countGuessedWord - count) > countWordToGuess {
+								counts[currentLetter] = counts[currentLetter] + 1
+								// fmt.Println("gt")
+								// (*guessesLetterSet.items)[l].colour = greyColourID
+							} else {
+								counts[currentLetter] = counts[currentLetter] + 1
+								// guessesLetterSet.printLettersWithColour()
+								// fmt.Println()
+								clearCount := countGuessedWord - countWordToGuess - 1
+								guessesLetterSet.clearBackward(currentLetter, l, clearCount)
+								// guessesLetterSet.printLettersWithColour()
+								// fmt.Println()
+								// fmt.Println("done 2", string(currentLetter), countGuessedWord, countWordToGuess)
+							}
 						}
 					}
+					looped = true
 				}
-
 				guessesSet = append(guessesSet, guessesLetterSet)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
 				guessesLetterSet.printLettersWithColour()
@@ -357,6 +386,7 @@ tries:
 				guessCount--
 				fmt.Printf("%s not found in list. Please guess a valid %v letter word from the wordlist\n", guessWord, wordLength)
 			}
+
 		}
 		// If we've run out of words, end and print out the correct word
 		if guessCount+1 == maxGuesses && !callArgs.HideAnswer {
