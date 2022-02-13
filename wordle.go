@@ -351,8 +351,7 @@ tries:
 						count, _ := counts[currentLetter]
 						// Initialize count if not initialized
 						if count == 0 {
-							counts[currentLetter] = 1
-							count = 0
+							counts[currentLetter]++
 						}
 
 						// If we have more of the letter in the guessed word than the word to guess
