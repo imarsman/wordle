@@ -311,7 +311,7 @@ tries:
 			// calculate score
 			score = len(guessesSet) + len(*triedLetterSet.items)
 			fmt.Println()
-			fmt.Printf("Your score is %d, %d guesses and %d incorrect letters tried\n", score, triedNotThere, len(*triedLetterSet.items))
+			fmt.Printf("Your score is %d, %d guesses and %d letters tried\n", score, triedNotThere, len(*triedLetterSet.items))
 			break
 		} else {
 			i := sort.SearchStrings(wordleWords, guessWord)
