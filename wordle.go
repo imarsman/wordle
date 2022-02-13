@@ -338,6 +338,7 @@ tries:
 					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
 
+				// keep track of how many times each letter is encountered
 				counts := make(map[rune]int)
 				// Iterate backwards and decide whether to clear out previous non-green for the same letter
 				for l := len(guessWord) - 1; l >= 0; l-- {
