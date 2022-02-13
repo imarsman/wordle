@@ -211,16 +211,15 @@ func (ls *letterSet) printWordLettersBlank() {
 		return
 	}
 	for _, l := range *ls.items {
+		letter := "   "
 		switch l.colour {
 		case greenColourID:
-			fmt.Print("\033[42m\033[1;30m")
+			fmt.Print(gchalk.WithBgGreen().Green(string(letter)))
 		case yellowColourID:
-			fmt.Print("\033[43m\033[1;30m")
+			fmt.Print(gchalk.WithBgYellow().Yellow(string(letter)))
 		case greyColourID:
-			fmt.Print("\033[40m\033[1;37m")
+			fmt.Print(gchalk.WithBgGrey().Grey(string(letter)))
 		}
-		fmt.Printf(" %c ", ' ')
-		fmt.Print("\033[m\033[m")
 	}
 }
 
@@ -356,21 +355,15 @@ tries:
 								counts[currentLetter] = 1
 								count = 0
 							}
-							// fmt.Println(string(currentLetter), contains, countWordToGuess, countGuessedWord, count)
 
 							if (countGuessedWord - count) > countWordToGuess {
 								counts[currentLetter] = counts[currentLetter] + 1
-								// fmt.Println("gt")
 								// (*guessesLetterSet.items)[l].colour = greyColourID
 							} else {
 								counts[currentLetter] = counts[currentLetter] + 1
 								// guessesLetterSet.printLettersWithColour()
-								// fmt.Println()
 								clearCount := countGuessedWord - countWordToGuess - 1
 								guessesLetterSet.clearBackward(currentLetter, l, clearCount)
-								// guessesLetterSet.printLettersWithColour()
-								// fmt.Println()
-								// fmt.Println("done 2", string(currentLetter), countGuessedWord, countWordToGuess)
 							}
 						}
 					}
