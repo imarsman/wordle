@@ -311,7 +311,7 @@ tries:
 			// calculate score
 			score = len(guessesSet) + len(*triedLetterSet.items)
 			fmt.Println()
-			fmt.Printf("Your score is %d, %d guesses and %d incorrect letters tried\n", score, len(guessesSet), triedNotThere)
+			fmt.Printf("Your score is %d, %d guesses and %d incorrect letters tried\n", score, triedNotThere, len(*triedLetterSet.items))
 			break
 		} else {
 			i := sort.SearchStrings(wordleWords, guessWord)
@@ -321,19 +321,19 @@ tries:
 					for k, letter := range wordToGuess {
 						if guessLetter == letter {
 							if j == k {
+								// Set to green
 								(*guessesLetterSet.items)[j].colour = greenColourID
-
 								// Add to the tried letters set
-								triedLetterSet.addLetterWithColour(guessLetter, greenColourID) // set green
-
+								triedLetterSet.addLetterWithColour(guessLetter, greenColourID)
 								break
 							} else {
-								(*guessesLetterSet.items)[j].colour = yellowColourID            // set yellow
-								triedLetterSet.addLetterWithColour(guessLetter, yellowColourID) // set yellow
+								// Set to yellow
+								(*guessesLetterSet.items)[j].colour = yellowColourID
+								// Add letter as yellow
+								triedLetterSet.addLetterWithColour(guessLetter, yellowColourID)
 							}
 						}
 					}
-
 					// this will have no effect if higher colour already present
 					triedLetterSet.addLetterWithColour(guessLetter, greyColourID)
 				}
@@ -344,31 +344,38 @@ tries:
 				for l := len(guessWord) - 1; l >= 0; l-- {
 					currentLetter := (*guessesLetterSet.items)[l].letter
 					currentColour := (*guessesLetterSet.items)[l].colour
+
 					if currentColour == yellowColourID {
 						countGuessedWord := guessesLetterSet.lettersIn(currentLetter)
 						countWordToGuess := wordToGuessLetterSet.lettersIn(currentLetter)
 						count, _ := counts[currentLetter]
-						// Initialize if not
+						// Initialize count if not initialized
 						if count == 0 {
 							counts[currentLetter] = 1
 							count = 0
 						}
 
 						// If we have more of the letter in the guessed word than the word to guess
-						// take count found so far into account
+						// just increment the count
 						if (countGuessedWord - count) > countWordToGuess {
 							counts[currentLetter] = counts[currentLetter] + 1
 						} else {
+							// Increment count
 							counts[currentLetter] = counts[currentLetter] + 1
+							// Figure out how many to reset to grey
 							clearCount := countGuessedWord - countWordToGuess - 1
+							// Reset to grey
 							guessesLetterSet.clearBackward(currentLetter, l, clearCount)
 						}
 					}
 				}
+				// We have a set number of guesses
 				guessesSet = append(guessesSet, guessesLetterSet)
 				fmt.Print(gchalk.WithBold().Paint("Guess "))
+				// Print out guess
 				guessesLetterSet.printLettersWithColour()
 				fmt.Print(gchalk.WithBold().Paint(" Tried "))
+				// Print out tried letters
 				triedLetterSet.printLettersWithColour()
 				fmt.Println()
 			} else {
